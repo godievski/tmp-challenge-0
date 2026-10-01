@@ -21,6 +21,7 @@ Otra contraseña devuelve un error de autenticación. El mock demora un segundo 
 - Organización por features (`auth`, `home`, `settings`), separando componentes, hooks, servicios de API y modelos. Los servicios HTTP, almacenamiento y consultas se comparten desde `src/services`.
 - HeroUI Native y Uniwind para los componentes y estilos, con tokens de Tailwind, tipografía Geist y una paleta cálida con temas claro y oscuro.
 - TanStack Form y Zod para validar el login. La validación comienza al enviar el formulario y se actualiza al editar después del primer submit.
+- Zustand para la preferencia de tamaño de página compartida entre Ajustes y el listado.
 - TanStack Query para las peticiones, caché, paginación y estados de carga/error. Los datos de Open Library se validan y se adaptan al modelo de libros de la aplicación.
 - React Native Keyboard Controller para el teclado y Reanimated para el loader compartido por botones y lista.
 
@@ -36,9 +37,9 @@ La sesión, incluido el token y el email, se guarda con `expo-secure-store`. Al 
 
 ## Renderizado de lista
 
-Actualmente se usa `FlatList`, con páginas de 100 libros, carga al llegar al final y actualización al deslizar hacia abajo. La paginación permite cargar más de 2000 libros.
+Home usa Legend List para reciclar las filas y evitar renders innecesarios. Carga 2000 libros por página, solicita más al llegar al final y permite actualizar deslizando hacia abajo.
 
-**TBD:** evaluar Legend List para el renderizado del catálogo. La migración queda pendiente.
+En Ajustes se puede cambiar el tamaño de página a 100, 200, 500, 1000 o 2000 libros. El cambio limpia la caché y reinicia la lista desde la primera página.
 
 ## Posibles mejoras
 
@@ -54,6 +55,7 @@ Actualmente se usa `FlatList`, con páginas de 100 libros, carga al llegar al fi
 - `src/app`: rutas y layouts de Expo Router.
 - `src/features`: autenticación, catálogo y ajustes.
 - `src/services`: HTTP, SecureStore y TanStack Query.
+- `src/shared/store`: preferencias compartidas por el catálogo y ajustes.
 - `src/components/ui`: componentes compartidos, cada uno en su carpeta junto a sus tests.
 - `src/theme` y `global.css`: colores y tokens de estilo.
 - `test`: configuración y utilidades de testing.
@@ -64,6 +66,6 @@ Actualmente se usa `FlatList`, con páginas de 100 libros, carga al llegar al fi
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm test`             | Todos los tests: validación y mock de login, mapeo y paginación de libros, componentes UI y flujos de integración.              |
 | `pnpm test:watch`       | Los mismos tests, ejecutados al editar archivos.                                                                                |
-| `pnpm test:integration` | Login, persistencia, restauración y cierre de sesión; consulta de 2010 libros, refresh, caché y recuperación ante errores HTTP. |
+| `pnpm test:integration` | Login, persistencia, restauración y cierre de sesión; consulta de 2010 libros, refresh, caché, cambios de tamaño de página y recuperación ante errores HTTP. |
 
 Las respuestas HTTP y el almacenamiento nativo se simulan para que los tests no dependan de servicios externos ni de un dispositivo.

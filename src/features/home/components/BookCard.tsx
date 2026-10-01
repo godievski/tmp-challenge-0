@@ -1,8 +1,9 @@
+import { memo } from "react";
 import { AppText } from "@/components/ui";
 import { View } from "react-native";
 import type { Book } from "../types";
 
-export function BookCard({ book }: { book: Book }) {
+export const BookCard = memo(function BookCard({ book }: { book: Book }) {
   const author = book.authors[0] ?? "Autor desconocido";
   const detail = book.firstPublishedYear
     ? `${author} · ${book.firstPublishedYear}`
@@ -30,4 +31,4 @@ export function BookCard({ book }: { book: Book }) {
       </View>
     </View>
   );
-}
+});

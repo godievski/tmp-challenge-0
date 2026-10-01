@@ -1,5 +1,6 @@
 import { AppText, Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/context/AuthProvider";
+import { BookPageSizeSetting } from "../components/BookPageSizeSetting";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
@@ -37,6 +38,7 @@ export function SettingsScreen() {
           {session?.email}
         </AppText>
       </View>
+      <BookPageSizeSetting />
       <View className="mt-6 gap-3">
         <Button
           title="Cerrar sesión"
