@@ -65,7 +65,7 @@
     "lint": "expo lint",
     "test": "jest --watchman=false",
     "test:watch": "jest --watchman=false --watch",
-    "update:preview": "npx eas-cli@latest update --channel preview --environment preview",
+    "update:preview": "eas update --channel preview --environment preview",
     "test:integration": "jest --watchman=false --testPathPattern=integration.test"
   },
   "private": true
