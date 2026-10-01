@@ -1,37 +1,69 @@
 # Challenge
 
-Aplicación Expo para Android y iOS con autenticación mock y un listado de libros de Open Library.
+Aplicación Expo para Android y iOS con autenticación mock y un catálogo de libros de Open Library.
 
 ## Desarrollo
 
 1. Instala las dependencias con `pnpm install`.
-2. Copia `.env.example` a `.env`. La variable `EXPO_PUBLIC_OPEN_LIBRARY_SEARCH_URL` apunta al endpoint público de búsqueda.
+2. Copia `.env.example` a `.env`. La variable `EXPO_PUBLIC_OPEN_LIBRARY_SEARCH_URL` define el endpoint público de búsqueda.
 3. Inicia el proyecto con `npx expo start`.
 
-La URL es pública y Expo la incluye en el bundle de la aplicación. No agregues secretos a variables `EXPO_PUBLIC_`.
+## Usuario demo
+
+- Email: cualquier email válido.
+- Contraseña: `123456`.
+
+Otra contraseña devuelve un error de autenticación. El mock demora un segundo para mostrar el estado de carga.
+
+## Decisiones técnicas
+
+- Expo Router para la navegación, con rutas protegidas y tabs nativos para Inicio y Ajustes.
+- Organización por features (`auth`, `home`, `settings`), separando componentes, hooks, servicios de API y modelos. Los servicios HTTP, almacenamiento y consultas se comparten desde `src/services`.
+- HeroUI Native y Uniwind para los componentes y estilos, con tokens de Tailwind, tipografía Geist y una paleta cálida con temas claro y oscuro.
+- TanStack Form y Zod para validar el login. La validación comienza al enviar el formulario y se actualiza al editar después del primer submit.
+- TanStack Query para las peticiones, caché, paginación y estados de carga/error. Los datos de Open Library se validan y se adaptan al modelo de libros de la aplicación.
+- React Native Keyboard Controller para el teclado y Reanimated para el loader compartido por botones y lista.
+
+## Manejo de sesión/autorización
+
+`AuthProvider` usa Context API para compartir la sesión y los estados de autenticación y restauración. El estado es pequeño y compartido entre las pantallas, por lo que no requiere otro gestor de estado.
+
+El servicio mock acepta cualquier email válido con la contraseña `123456` y devuelve un token dummy de tipo `Bearer`. `useLogin` gestiona la mutación y sus estados mediante TanStack Query.
+
+La sesión, incluido el token y el email, se guarda con `expo-secure-store`. Al iniciar la aplicación se recupera y valida antes de mostrar las rutas. Si no puede guardarse, el login muestra un error y no activa la sesión. Al cerrar sesión se elimina la sesión persistida y se limpia la caché de consultas.
+
+`Stack.Protected` de Expo Router habilita el login cuando no hay sesión y las rutas de `main` cuando el usuario está autenticado. Esta protección controla la navegación; el mock no implementa autorización de un backend ni verifica expiración del token.
+
+## Renderizado de lista
+
+Actualmente se usa `FlatList`, con páginas de 100 libros, carga al llegar al final y actualización al deslizar hacia abajo. La paginación permite cargar más de 2000 libros.
+
+**TBD:** evaluar Legend List para el renderizado del catálogo. La migración queda pendiente.
+
+## Posibles mejoras
+
+- Revisar un posible problema con las safe areas en Android al usar native tabs. Evaluar si Expo SDK 58 lo corrige y verificarlo en dispositivos antes de migrar.
+- Agregar portadas al catálogo. Por ahora se omitieron para reducir las peticiones a los servicios de Open Library.
+- Agregar una pantalla de detalle del libro, con un servicio para consultar sus datos completos y una animación de transición desde el catálogo para ofrecer una experiencia nativa.
+- Agregar un selector de tema claro/oscuro para que no dependa solamente del sistema.
+- Configurar i18n y soporte para varios idiomas.
+- Ampliar el mock de autenticación para probar refresh tokens, expiración de sesión e inactividad.
 
 ## Estructura
 
-- `src/app`: solo rutas y layouts de Expo Router (`_layout.tsx`, `index.tsx`, `main/`).
-- `src/services`: servicios transversales compartidos por la aplicación:
-  - `http/httpClient.ts`: cliente HTTP centralizado con soporte de `AbortSignal` y serialización de parámetros.
-  - `storage/secureStorage.ts`: persistencia cifrada por hardware mediante `expo-secure-store`.
-  - `query/`: cliente de TanStack Query y proveedor sincronizado con el ciclo de vida móvil (`AppState`).
-- `src/features/auth`: encapsula todo lo relativo a autenticación:
-  - `api/authService.ts`: contrato `AuthService`.
-  - `api/mockAuthService.ts`: implementación mock intercambiable.
-  - `context/AuthProvider.tsx`: gestión de sesión con persistencia en `secureStorage`.
-  - `hooks/useLogin.ts`: mutación declarativa del login.
-  - `components/` & `screens/`: formulario y pantalla de acceso.
-  - `types.ts`: modelos de sesión y credenciales.
-- `src/features/home`: catálogo y consumo de la API pública:
-  - `api/books.dto.ts`: contrato y validación Zod de la API externa (Open Library).
-  - `api/books.mapper.ts`: mapeo explícito de `BookDTO` hacia el modelo interno `Book`.
-  - `api/booksApi.ts`: llamadas remotas utilizando `httpClient`.
-  - `hooks/useBooks.ts`: consulta paginada infinita con TanStack Query.
-  - `components/` & `screens/`: celda `BookCard` y pantalla `HomeScreen`.
-  - `types.ts`: modelo interno de la aplicación (`Book`, `BookPage`).
-- `src/features/settings`: pantalla de cuenta y cierre de sesión (`signOut`).
-- `src/components/ui`: primitivas de diseño reutilizables (`AppText`, `Button`, `TextField`, `Loader`).
+- `src/app`: rutas y layouts de Expo Router.
+- `src/features`: autenticación, catálogo y ajustes.
+- `src/services`: HTTP, SecureStore y TanStack Query.
+- `src/components/ui`: componentes compartidos, cada uno en su carpeta junto a sus tests.
+- `src/theme` y `global.css`: colores y tokens de estilo.
+- `test`: configuración y utilidades de testing.
 
-La búsqueda en Home consulta Open Library en páginas de 100 libros conforme se llega al final del listado (`fiction`, más de 2000 resultados). Deslizar hacia abajo reinicia la lista y vuelve a consultar la primera página.
+## Tests
+
+| Script                  | Qué prueba                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`             | Todos los tests: validación y mock de login, mapeo y paginación de libros, componentes UI y flujos de integración.              |
+| `pnpm test:watch`       | Los mismos tests, ejecutados al editar archivos.                                                                                |
+| `pnpm test:integration` | Login, persistencia, restauración y cierre de sesión; consulta de 2010 libros, refresh, caché y recuperación ante errores HTTP. |
+
+Las respuestas HTTP y el almacenamiento nativo se simulan para que los tests no dependan de servicios externos ni de un dispositivo.
