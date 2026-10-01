@@ -1,56 +1,37 @@
-# Welcome to your Expo app 👋
+# Challenge
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación Expo para Android y iOS con autenticación mock y un listado de libros de Open Library.
 
-## Get started
+## Desarrollo
 
-1. Install dependencies
+1. Instala las dependencias con `pnpm install`.
+2. Copia `.env.example` a `.env`. La variable `EXPO_PUBLIC_OPEN_LIBRARY_SEARCH_URL` apunta al endpoint público de búsqueda.
+3. Inicia el proyecto con `npx expo start`.
 
-   ```bash
-   npm install
-   ```
+La URL es pública y Expo la incluye en el bundle de la aplicación. No agregues secretos a variables `EXPO_PUBLIC_`.
 
-2. Start the app
+## Estructura
 
-   ```bash
-   npx expo start
-   ```
+- `src/app`: solo rutas y layouts de Expo Router (`_layout.tsx`, `index.tsx`, `main/`).
+- `src/services`: servicios transversales compartidos por la aplicación:
+  - `http/httpClient.ts`: cliente HTTP centralizado con soporte de `AbortSignal` y serialización de parámetros.
+  - `storage/secureStorage.ts`: persistencia cifrada por hardware mediante `expo-secure-store`.
+  - `query/`: cliente de TanStack Query y proveedor sincronizado con el ciclo de vida móvil (`AppState`).
+- `src/features/auth`: encapsula todo lo relativo a autenticación:
+  - `api/authService.ts`: contrato `AuthService`.
+  - `api/mockAuthService.ts`: implementación mock intercambiable.
+  - `context/AuthProvider.tsx`: gestión de sesión con persistencia en `secureStorage`.
+  - `hooks/useLogin.ts`: mutación declarativa del login.
+  - `components/` & `screens/`: formulario y pantalla de acceso.
+  - `types.ts`: modelos de sesión y credenciales.
+- `src/features/home`: catálogo y consumo de la API pública:
+  - `api/books.dto.ts`: contrato y validación Zod de la API externa (Open Library).
+  - `api/books.mapper.ts`: mapeo explícito de `BookDTO` hacia el modelo interno `Book`.
+  - `api/booksApi.ts`: llamadas remotas utilizando `httpClient`.
+  - `hooks/useBooks.ts`: consulta paginada infinita con TanStack Query.
+  - `components/` & `screens/`: celda `BookCard` y pantalla `HomeScreen`.
+  - `types.ts`: modelo interno de la aplicación (`Book`, `BookPage`).
+- `src/features/settings`: pantalla de cuenta y cierre de sesión (`signOut`).
+- `src/components/ui`: primitivas de diseño reutilizables (`AppText`, `Button`, `TextField`, `Loader`).
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+La búsqueda en Home consulta Open Library en páginas de 100 libros conforme se llega al final del listado (`fiction`, más de 2000 resultados). Deslizar hacia abajo reinicia la lista y vuelve a consultar la primera página.

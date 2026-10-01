@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+@import 'uniwind';
+@import 'heroui-native/styles';
+
+@theme {
+  --font-geist-regular: 'Geist_400Regular';
+  --font-geist-medium: 'Geist_500Medium';
+  --font-geist-semibold: 'Geist_600SemiBold';
+  --font-geist-bold: 'Geist_700Bold';
+  --field-radius: 8px;
+  --field-border-width: 1px;
+}
+
+@layer theme {
+  :root {
+    @variant light {
+      --background: #faf7f2;
+      --foreground: #30241d;
+      --surface: #f1e8dd;
+      --surface-foreground: #30241d;
+      --muted: #756250;
+      --border: #d9c9b9;
+      --default: #eee2d5;
+      --default-foreground: #30241d;
+      --accent: #944b2d;
+      --accent-foreground: #fff8f1;
+      --field-background: #fffcf8;
+      --field-foreground: #30241d;
+      --field-placeholder: #756250;
+      --field-border: #8c7563;
+      --danger: #b83232;
+      --focus: #944b2d;
+      --field-shadow: 0 0 0 0 transparent;
+    }
+
+    @variant dark {
+      --background: #191919;
+      --foreground: #f4f1ed;
+      --surface: #272625;
+      --surface-foreground: #f4f1ed;
+      --muted: #bcb4ab;
+      --border: #7a746f;
+      --default: #34312f;
+      --default-foreground: #f4f1ed;
+      --accent: #e8b28a;
+      --accent-foreground: #26170f;
+      --field-background: #302e2b;
+      --field-foreground: #f4f1ed;
+      --field-placeholder: #bcb4ab;
+      --field-border: #958a80;
+      --danger: #ff9f95;
+      --focus: #f2bc92;
+      --field-shadow: 0 0 0 0 transparent;
+    }
+  }
+}
